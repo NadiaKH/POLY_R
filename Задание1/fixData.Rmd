@@ -1,0 +1,59 @@
+Необходимые библилтеки:
+```{r}
+library(stringr)
+```
+
+Устанавливаем рабочую директорию, если нужно, и смотрим на её содержимое:
+```{r}
+#setwd("home/nadia/Desktop/POLY_R")
+list.files()
+```
+
+Функция, преобразовывающая тип объекта в численный. В случае неудачи возвращает `r NA`, в случае успеха численное значение:
+```{r}
+toNumeric <- function(obj) {
+  return(tryCatch(as.numeric(obj), warning=function(cond){return(NA)}))
+}
+```
+
+Функция, удаляющая все пробелы из строки.
+```{r}
+removeSpaces <- function(s) {
+  return(str_replace_all(s, " ", ""))
+}
+```
+
+
+Функция принимает на вход вектор строк. Если каждый элемент вектора после удаления пробелов можно проинтерпретировать как число, возвращает преобразованный вектор чисел. В противном случае возвращает исходный вектор. 
+```{r}
+transformCol <- function(x){
+  # Удаляем пробелы из каждого элемента вектора x
+  y <- sapply(list(x), removeSpaces)
+  # Переводим элементы y в числа
+  num <- sapply(list(y), toNumeric)
+  # Если какой-либо элемент num невозможно перевести в число, 
+  # возвращаем исходный вектор 
+  # Иначе возвращаем num  
+  if(any(is.na(num)))
+  {return(x)} 
+  else 
+  {return(num)}
+}
+```
+
+
+Преобразуем каждый столбец дата-фрейма с помощью функции transformCol:
+```{r}
+fixDataFrame <- function(data) {
+  for (i in colnames(data)) {
+    data[[i]] <- transformCol(data[[i]])
+  }
+  return(data)
+}
+```
+
+Читаем данные и применяем функцию fixDataFrame
+```{r}
+data <- read.csv("test_data_01.csv")
+fixDataFrame(data)
+```
