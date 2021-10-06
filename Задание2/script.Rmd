@@ -1,0 +1,41 @@
+Подгружаем библиотеки, загружаем данные 
+```{r message=F}
+library("dplyr")
+load("data.RData")
+```
+
+Функция для обработки данных 
+```{r}
+procData <- function(data) {
+  # Находим индексы общие для всех дата-фреймов в data
+  # и сортируем их 
+  ids <- Reduce(intersect, sapply(data, function(x) {x$id}))
+  ids <- sort(ids)
+
+  # массив нулей того же размера, что массив индексов ids
+  res <- rep(0, length(ids))
+
+  # проходим по всем дата-фреймам в data
+  for (i in seq(1, length(data))){
+    # для каждого дата-фрейма оставляем только записи с индексами из ids
+    data[[i]] <- data[[i]][data[[i]]$id %in% ids,]
+    # сортируем данные по индексам 
+    data[[i]] <- data[[i]][with(data, order(data[[i]]$id)), ]
+    # к результату добавляем температуру из каждого дата фрейма 
+    res <- res + data[[i]]$temp 
+  }
+
+  # делим на количество дата-фреймов чтобы найти среднее
+  res <- res / length(data)
+  
+  # получаем ответ, средняя температура для всех тех пациентов, 
+  # кто посетил все процедуры
+  df <- data.frame(ids, res)
+  names(df) <- c("id", "temp_mean")
+  return(df)
+}
+```
+
+```{r}
+procData(data)
+```
